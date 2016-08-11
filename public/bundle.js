@@ -24552,7 +24552,7 @@
 	    handleSubmit: function handleSubmit() {
 	        var username = this.usernameRef.value;
 	        this.usernameRef.value = '';
-	        this.history.pushState(null, "profile/" + username);
+	        this.history.pushState(null, "/profile/" + username);
 	    },
 	    getRef: function getRef(ref) {
 	        this.usernameRef = ref;
@@ -24623,62 +24623,65 @@
 	var helpers = __webpack_require__(222);
 
 	var Profile = React.createClass({
-	    displayName: 'Profile',
+	  displayName: 'Profile',
 
-	    mixins: [ReactFireMixin],
-	    getInitialState: function getInitialState() {
-	        return {
-	            notes: [1, 2, 3],
-	            bio: {
-	                name: 'Marcel Tinnermann'
-	            },
-	            repos: ['a', 'b']
-	        };
-	    },
-	    componentDidMount: function componentDidMount() {
-	        this.ref = new Firebase('https://github-note-taker.firebaseio.com');
-	        var childRef = this.ref.child(this.props.params.username);
-	        this.bindAsArray(childRef, 'notes');
+	  mixins: [ReactFireMixin],
+	  getInitialState: function getInitialState() {
+	    return {
+	      notes: [1, 2, 3],
+	      bio: {},
+	      repos: []
+	    };
+	  },
+	  componentDidMount: function componentDidMount() {
+	    this.ref = new Firebase('https://github-note-taker.firebaseio.com/');
+	    this.init(this.props.params.username);
+	  },
+	  componentWillReceiveProps: function componentWillReceiveProps(nextProps) {
+	    this.unbind('notes');
+	    this.init(nextProps.params.username);
+	  },
+	  componentWillUnmount: function componentWillUnmount() {
+	    this.unbind('notes');
+	  },
+	  init: function init(username) {
+	    var childRef = this.ref.child(username);
+	    this.bindAsArray(childRef, 'notes');
 
-	        helpers.getGithubInfo(this.props.params.username).then(function (data) {
-	            this.setState({
-	                bio: data.bio,
-	                repos: data.repos
-	            });
-	        }.bind(this));
-	    },
-	    componentWillUnmount: function componentWillUnmount() {
-	        this.unbind('notes');
-	    },
-	    handleAddNote: function handleAddNote(newNote) {
-	        // update firebase, with new Note
-	        this.ref.child(this.props.params.username).child(this.state.notes.length).set(newNote);
-	    },
-	    render: function render() {
-	        return React.createElement(
-	            'div',
-	            { className: 'row' },
-	            React.createElement(
-	                'div',
-	                { className: 'col-md-4' },
-	                React.createElement(UserProfile, { username: this.props.params.username, bio: this.state.bio })
-	            ),
-	            React.createElement(
-	                'div',
-	                { className: 'col-md-4' },
-	                React.createElement(Repos, { username: this.props.params.username, repos: this.state.repos })
-	            ),
-	            React.createElement(
-	                'div',
-	                { className: 'col-md-4' },
-	                React.createElement(Notes, {
-	                    username: this.props.params.username,
-	                    notes: this.state.notes,
-	                    addNote: this.handleAddNote
-	                })
-	            )
-	        );
-	    }
+	    helpers.getGithubInfo(username).then(function (data) {
+	      this.setState({
+	        bio: data.bio,
+	        repos: data.repos
+	      });
+	    }.bind(this));
+	  },
+	  handleAddNote: function handleAddNote(newNote) {
+	    this.ref.child(this.props.params.username).child(this.state.notes.length).set(newNote);
+	  },
+	  render: function render() {
+	    return React.createElement(
+	      'div',
+	      { className: 'row' },
+	      React.createElement(
+	        'div',
+	        { className: 'col-md-4' },
+	        React.createElement(UserProfile, { username: this.props.params.username, bio: this.state.bio })
+	      ),
+	      React.createElement(
+	        'div',
+	        { className: 'col-md-4' },
+	        React.createElement(Repos, { username: this.props.params.username, repos: this.state.repos })
+	      ),
+	      React.createElement(
+	        'div',
+	        { className: 'col-md-4' },
+	        React.createElement(Notes, {
+	          username: this.props.params.username,
+	          notes: this.state.notes,
+	          addNote: this.handleAddNote })
+	      )
+	    );
+	  }
 	});
 
 	module.exports = Profile;
